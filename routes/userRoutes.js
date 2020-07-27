@@ -10,7 +10,12 @@ const authControler = require('../controlers/authControler');
 router.post('/signup', authControler.signup);
 router.post('/login', authControler.login);
 router.post('/forgotPassword', authControler.forgotPassword);
-router.post('/resetPassword', authControler.resetPassword);
+router.patch('/resetPassword/:token', authControler.resetPassword);
+router.patch(
+  '/updateMyPassword',
+  authControler.protect,
+  authControler.updatePassword
+);
 
 router.route('/').get(userControler.getAllUsers).post(userControler.addUser);
 router

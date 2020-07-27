@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: [true, 'Please confirm your password'],
       validate: {
-        // This works only on Create and Save
+        // This works only on Create and Save not update
         validator: function (el) {
           return el === this.password;
         },
@@ -43,7 +43,7 @@ const userSchema = new mongoose.Schema(
     photo: String,
     passwordChangedAt: Date,
     passwordResetToken: String,
-    PasswordResetExpires: Date,
+    passwordResetExpires: Date,
   },
   {
     toJSON: { virtuals: true },
@@ -58,6 +58,12 @@ userSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, 12);
   //remove the confirm field which will work since we are saving and passed calling
   this.passwordConfirm = undefined;
+});
+
+userSchema.pre('save', function (next) {
+  if (!this.isModified('password') || this.isNew) return next();
+  this.passwordChangedAt = Date.now() - 1000; //To avoid delay in setting this and creating token
+  next();
 });
 
 //instance method - a method available on all documents of a collection
@@ -86,7 +92,7 @@ userSchema.methods.createResetPasswordToken = function () {
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
-  this.PasswordResetExpires = Date.now() + 3600000; //1 hr
+  this.passwordResetExpires = Date.now() + 3600000; //1 hr
   return resetToken;
 };
 // Creating Model
