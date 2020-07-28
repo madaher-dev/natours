@@ -24,9 +24,7 @@ mongoose
 
 // Read JSON FILE
 
-const tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/tours-simple.json`, 'utf-8')
-);
+const tours = JSON.parse(fs.readFileSync(`${__dirname}/tours.json`, 'utf-8'));
 
 // Export Data into DB
 
@@ -55,3 +53,4 @@ console.log(process.argv);
 
 if (process.argv[2] === '--export') exportData();
 else if (process.argv[2] === '--delete') deleteData();
+//node ./dev-data/data/import.js --delete

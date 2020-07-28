@@ -1,10 +1,21 @@
 const express = require('express');
 const tourControler = require('../controlers/tourControler');
 const authControler = require('../controlers/authControler');
+const reviewRouter = require('../routes/reviewRoutes');
 
 const router = express.Router();
 
 // router.param('id', tourControler.checkId);
+
+// router
+//   .route('/:id/reviews')
+//   .post(
+//     authControler.protect,
+//     authControler.restrictTo('user'),
+//     reviewControler.createReview
+//   );
+
+router.use('/:id/reviews/', reviewRouter);
 
 // Routes
 router.route('/monthly-plan/:year').get(tourControler.getMonthlyPlan);

@@ -44,6 +44,11 @@ const userSchema = new mongoose.Schema(
     passwordChangedAt: Date,
     passwordResetToken: String,
     passwordResetExpires: Date,
+    active: {
+      type: Boolean,
+      default: true,
+      select: false,
+    },
   },
   {
     toJSON: { virtuals: true },
@@ -65,7 +70,12 @@ userSchema.pre('save', function (next) {
   this.passwordChangedAt = Date.now() - 1000; //To avoid delay in setting this and creating token
   next();
 });
-
+//Querry middleware to make sure user is active
+userSchema.pre(/^find/, function (next) {
+  //this points to active query
+  this.find({ active: { $ne: false } });
+  next();
+});
 //instance method - a method available on all documents of a collection
 userSchema.methods.correctPassword = async function (
   candidatePassword,
