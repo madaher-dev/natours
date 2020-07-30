@@ -11,13 +11,26 @@ router.post('/signup', authControler.signup);
 router.post('/login', authControler.login);
 router.post('/forgotPassword', authControler.forgotPassword);
 router.patch('/resetPassword/:token', authControler.resetPassword);
+
+// Protect all routes after this point
+router.use(authControler.protect);
+
 router.patch(
   '/updateMyPassword',
-  authControler.protect,
+
   authControler.updatePassword
 );
-router.patch('/updateMe', authControler.protect, userControler.updateMe);
-router.delete('/deleteMe', authControler.protect, userControler.deleteMe);
+router.get(
+  '/me',
+
+  userControler.getMe,
+  userControler.getUser
+);
+router.patch('/updateMe', userControler.updateMe);
+router.delete('/deleteMe', userControler.deleteMe);
+
+// Restrict all routes after this point
+router.use(authControler.restrictTo('admin'));
 
 router.route('/').get(userControler.getAllUsers).post(userControler.addUser);
 router

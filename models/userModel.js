@@ -70,6 +70,7 @@ userSchema.pre('save', function (next) {
   this.passwordChangedAt = Date.now() - 1000; //To avoid delay in setting this and creating token
   next();
 });
+
 //Querry middleware to make sure user is active
 userSchema.pre(/^find/, function (next) {
   //this points to active query
