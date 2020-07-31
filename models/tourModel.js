@@ -37,6 +37,7 @@ const tourSchema = new mongoose.Schema(
       default: 4.5,
       min: [1, 'Rating must be more than 1.0'],
       max: [5, 'Rating should be below 5.0'], //works also with dates
+      set: (val) => Math.round(val * 10) / 10, //Setter function - round rounds to integer so we need to *10/10
     },
     ratingsQuantity: { type: Number, default: 0 },
     price: { type: Number, required: [true, 'A tour must have a price'] },
@@ -107,6 +108,11 @@ const tourSchema = new mongoose.Schema(
   }
 );
 
+// Indexing
+tourSchema.index({ price: 1, ratingsAverage: -1 }); //1 for ascending -1 for descending
+tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
+
 //Virtual
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
@@ -163,12 +169,12 @@ tourSchema.post(/^find/, function (docs, next) {
   next();
 });
 
-// Aggregate middleware
+// Aggregate middleware add match before other stages. removed to avoid conflict with geostate
 
-tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   next();
+// });
 // Creating Model
 const Tour = mongoose.model('Tour', tourSchema);
 
