@@ -60,6 +60,16 @@ exports.login = catchAsync(async (req, res, next) => {
   sendToken(user, 200, res);
 });
 
+exports.logout = (req, res) => {
+  res.cookie('jwt', 'loggedout', {
+    expires: new Date(Date.now() + 10000),
+    httpOnly: true,
+  });
+  res.status(200).json({
+    status: 'success',
+  });
+};
+
 exports.protect = catchAsync(async (req, res, next) => {
   //Get token and check if it is there
   let token;
@@ -69,6 +79,8 @@ exports.protect = catchAsync(async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
   if (!token) return next(new AppError('No token, authorization denied!', 401));
   // Token verification
@@ -90,6 +102,35 @@ exports.protect = catchAsync(async (req, res, next) => {
   req.user = currentUser;
   next();
 });
+
+// Only for rendered pages, no errors
+exports.isAuthenticated = async (req, res, next) => {
+  try {
+    if (req.cookies.jwt) {
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET
+      );
+
+      // Check if user still exists
+      const currentUser = await User.findById(decoded.id);
+      if (!currentUser) return next();
+
+      // Check if password did not change
+
+      if (currentUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+      //There is a logged in user
+
+      res.locals.user = currentUser; //passing data to template
+      return next();
+    }
+    next();
+  } catch (error) {
+    return next();
+  }
+};
 
 exports.restrictTo = (...roles) => {
   //array of argument roles
